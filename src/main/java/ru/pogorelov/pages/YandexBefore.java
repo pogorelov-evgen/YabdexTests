@@ -1,6 +1,6 @@
 package ru.pogorelov.pages;
 
-import io.qameta.allure.Step;
+import org.junit.jupiter.api.Assertions;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -10,61 +10,139 @@ import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-
-
+/**
+ * @author  Погорелов Денис
+ * Класс отвечающий за страницу Яндекс Маркета
+ * */
 public class YandexBefore {
 
-
+    /**
+     * Драйвер для работы с хромом
+     */
     private WebDriver driver;
-
+    /**
+     * Драйвер для установления явных ожиданий
+     */
+    private Wait<WebDriver> wait;
+    /**
+     * Элемент указывающий на кнопку выбора каталогов товара в Яндекс Маркете
+     */
     private WebElement catalog;
+    /**
+     * Элемент указывающий на тип товара "электроника" в каталоге товаров
+     */
     private WebElement electronics;
+    /**
+     * Элемент указывающий на тип товара "электроника" в подкаталоге электроники
+     */
     private WebElement laptop;
+    /**
+     * Элемент области поиска Яндекс Маркета в разделе ноутбуков, где задается минимальная цена
+     * */
     private WebElement minPrice;
+    /**
+     * Элемент области поиска Яндекс Маркета в разделе ноутбуков, где задается максимальная цена
+     * */
     private WebElement maxPrice;
+    /**
+     * Элемент области поиска Яндекс Маркета в разделе ноутбуков, где задается производитель - HP
+     * */
     private WebElement manufacturerHP;
+    /**
+     * Элемент области поиска Яндекс Маркета в разделе ноутбуков, где задается производитель - Lenovo
+     * */
     private WebElement manufacturerLenovo;
+    /**
+     * Список названий ноутбуков
+     * */
     private List<WebElement> titleLaptops;
+    /**
+     * Список цен ноутбуков
+     * */
+    private List<WebElement> priceLaptops;
+    /**
+     * Список цен ноутбуков переведенных в значения типа int
+     * */
+    private List<Integer> priceInteger;
+    /**
+     * Название первого выданного в поиске ноутбука
+     * */
+    private String firstLaptopsInPages;
+    /**
+     * Элемент отвечающий за общее поле поиска Яндекс Маркета
+     * */
+    private WebElement searchVoid;
+    /**
+     * Элемент отвечающий за кнопку общего поиска
+     * */
+    private WebElement searchButton;
+    /**
+     * Список названий ноутбуков при общем поиске по названию
+     * */
+    private List<WebElement> titleSearch;
+    /**
+     * Элемент отвечающий за кнопку "Показать еще" в конце поисковой страницы
+     * */
+    private WebElement buttonShowMore;
 
+    /**
+     * Конструктор для создания класса для работы со страницей Яндекс Маркета
+     * @param chromeDriver передается вызывающим
+     * Создается драйвер для явного ожидания с максимальным временным ожиданием - 20 секунд
+     * */
     public YandexBefore(WebDriver chromeDriver) {
         this.driver = chromeDriver;
-        /*this.catalog = driver.findElement(By.xpath("//span[text()='Каталог']"));
-        this.electronics = driver.findElement(By.xpath("//li/a[contains(@href,'elektronika')]"));
-        this.laptop = driver.findElement(By.xpath("//ul[@data-autotest-id = 'subItems']/li//a[contains(@href,'noutbuki') and not (contains(@href,'igrovye'))]"));
-        this.minPrice = driver.findElement(By.xpath("//input[@id='range-filter-field-glprice_b9uigjk381n_min']"));
-        this.maxPrice = driver.findElement(By.xpath("//input[@id='range-filter-field-glprice_b9uigjk381n_max']"));
-        this.manufacturerHP = driver.findElement(By.xpath("//span[./span[text()='HP']]/span/span"));
-        this.manufacturerLenovo = driver.findElement(By.xpath("//span[./span[text()='Lenovo']]/span/span"));*/
+        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     }
+    /**
+     * Метод для перехода по переданной ссылке
+     * @param  url ссылка на страницу для перехода
+     * */
     public void openWebsite(String url, String title){
         driver.get(url);
         System.out.println(driver.getTitle().contains(title));
     }
-
+    /**
+     * Метод открытия каталога товаров
+     * */
     public void openCatalog(){
         this.catalog = driver.findElement(By.xpath("//span[text()='Каталог']"));
         catalog.click();
         System.out.println("Catalog");
     }
-
+    /**
+     * Метод для наведения курсора на раздел - электроника
+     * */
     public void indicateElectronics() {
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//li/a/span[text()='Электроника']")));
         this.electronics = driver.findElement(By.xpath("//li/a/span[text()='Электроника']"));
         Actions actions = new Actions(driver);
         actions.moveToElement(electronics).perform();
         System.out.println("indicateElectronics");
     }
-
+    /**
+     * Метод для открытия вкладки - ноутбуки
+     * */
     public void openLaptop(){
         this.laptop = driver.findElement(By.xpath("//a[text()='Ноутбуки']"));
         laptop.click();
         System.out.println("openLaptop");
     }
-
+    /**
+     * Метод для проверки перехода в раздел - ноутбуки
+     * */
     public void validateLaptop() {
         System.out.println(driver.getTitle().contains("Ноутбуки"));
+        Assertions.fail("Testing");
     }
-
+    /**
+     * Метод для установки диапазона цен на ноутбуки
+     * @param min Минимальная цена при выборе диапазона цен
+     * @param max Максимальная цена при выборе диапазона цен
+     * */
     public void installPrice(int min, int max) {
         this.minPrice = driver.findElement(By.xpath("//div[@data-auto = 'filter-range-glprice']//span[@data-auto ='filter-range-min']//input"));
         this.maxPrice = driver.findElement(By.xpath("//div[@data-auto = 'filter-range-glprice']//span[@data-auto ='filter-range-max']//input"));
@@ -74,22 +152,154 @@ public class YandexBefore {
         maxPrice.sendKeys(String.valueOf(max));
         System.out.println("Цена установлена");
     }
-
+    /**
+     * Метод для выбора производителей ноутбуков
+     * */
     public void selectManufacture() {
         this.manufacturerHP = driver.findElement(By.xpath("//span[text()='HP']/../span/span"));
         this.manufacturerLenovo = driver.findElement(By.xpath("//span[text()='Lenovo']/../span/span"));
         manufacturerLenovo.click();
         manufacturerHP.click();
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@data-auto='SerpStatic-loader']//div[contains(@class, 'position_center')]//span[@role='progressbar']")));
         System.out.println("manufacturer");
     }
-
+    /**
+     * Метод сохранения названий ноутбуков выданных при поиске
+     * */
     public void saveTitleLaptops() {
-        Wait<WebDriver> wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        this.titleLaptops = driver.findElements(By.xpath("//div[@data-auto-themename='listDetailed']//div[@data-baobab-name='title']//h3"));
+        System.out.println("Title count "+titleLaptops.size());
 
-        this.titleLaptops = driver.findElements(By.xpath("//div[@data-auto='SerpList']//h3[@data-auto='snippet-title']"));
-        titleLaptops.forEach(x -> System.out.println(x.getText()));
     }
+    /**
+     * Метод сохранения цен ноутбуков выданных при поиске
+     * */
+    public void savePriceLaptops() {
+        this.priceLaptops = driver.findElements(By.xpath("//div[@data-auto-themename='listDetailed']//span[@data-auto='snippet-price-current']/span[1]"));
+        System.out.println("Price count "+ priceLaptops.size());
+    }
+    /**
+     * Метод сохранения данных(цена и название) о ноутбуках выданных при поиске
+     * */
+    public void addLaptopsFirstPage() throws InterruptedException {
+        saveTitleLaptops();
+        savePriceLaptops();
+    }
+    /**
+     * Метод проверки количества выдаваемых ноутбуков на первой странице
+     * */
+    public void checkCountLaptopsFirstPage() throws Exception {
+        System.out.println("Count price Laptops first page  - "+priceLaptops.size());
+        System.out.println("Count title Laptops first page  - "+titleLaptops.size());
+        if(titleLaptops.size()>12) System.out.println("Количество больше 12");
 
-    public void savePrice() {
+    }
+    /**
+     * Метод сохранения всех выдаваемых ноутбуков на всех страницах
+     * */
+    public void addLaptopsAllPage() throws InterruptedException {
+        Actions actions = new Actions(driver);
+        WebElement buttonShowMore = driver.findElement(By.xpath("//button[@data-auto = 'pager-more']/span"));
+        actions.scrollToElement(buttonShowMore).perform();
+        System.out.println("button ShowMore " + buttonShowMore.isDisplayed());
+        if (buttonShowMore.isDisplayed()) {
+            buttonShowMore.click();
+        }
+        List<WebElement> allPages = driver.findElements(By.xpath("//div[@data-auto='SerpList']//h3[@data-auto='snippet-title']"));
+        int countProducts = 0;
+        List<WebElement> numberPages;
+        int maxNumber;
+        for(int i = 2; i < 50; i++) {
+            countProducts = allPages.size();
+            System.out.println("Count "+allPages.size());
+            wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//div[@data-current-page='"+i+"']//button[@data-auto='pager-more']"))));
+            System.out.println("scroll");
+            actions.scrollToElement(buttonShowMore).perform();
+            if (buttonShowMore.isDisplayed()) {
+                buttonShowMore.click();
+            }
+            if (driver.findElement(By.xpath("//div[@data-auto=\"pagination-page\"]")).isDisplayed()){
+                numberPages = driver.findElements(By.xpath("//div[@data-auto=\"pagination-page\"]"));
+
+                HashSet<Integer> set = new HashSet<>();
+                numberPages.forEach(x->set.add(Integer.parseInt(x.getText())));
+                maxNumber = set.stream().max(Integer::compare).get();
+                System.out.println("max number =" + maxNumber + " i = "+i);
+                if ((maxNumber-1)==(i)){
+                    System.out.println("Max number == i");
+                    break;
+                }
+            }
+            allPages = driver.findElements(By.xpath("//div[@data-auto='SerpList']//h3[@data-auto='snippet-title']"));
+            if (countProducts== allPages.size()) break;
+        }
+        saveTitleLaptops();
+        savePriceLaptops();
+        System.out.println("Total: " + priceLaptops.size() +" "+ titleLaptops.size());
+        
+    }
+    /**
+     * Метод проверки соответсвия всех выданных ноутбуков условиям поиска
+     * @param nameProduct1 Название производителя
+     * @param nameProduct2 Название производителя
+     * @param  minPrice Минимальная цена при выборе диапазона цен
+     * @param maxPrice максимальная цена при выборе диапазона цен
+     * */
+    public void checkProductsAllPage(String nameProduct1, String nameProduct2, int maxPrice, int minPrice) {
+        System.out.println("Start checkProductsAllPage");
+        System.out.println(titleLaptops.stream().allMatch(x->(x.getText().contains(nameProduct1))||(x.getText().contains(nameProduct2))));
+        convertPriceToInteger(priceLaptops);
+        System.out.println(priceInteger.stream().allMatch(x->(x>=10000 && x<=30000)));
+
+    }
+    /**
+     * Метод для перевода цен ноутбуков в общем списке ноутбуков к значению выраженных в int
+     * */
+    private void convertPriceToInteger(List<WebElement> prices) {
+        for (WebElement price : prices) {
+            char[]newPrice=price.getText().toCharArray();
+            priceInteger = new ArrayList<>();
+            priceInteger.add(Character.getNumericValue(newPrice[0])*10000 + Character.getNumericValue(newPrice[1])*1000 + Character.getNumericValue(newPrice[3])*100 + Character.getNumericValue(newPrice[4])*10 + Character.getNumericValue(newPrice[5]));
+        }
+        System.out.println("Converted price");
+    }
+    /**
+     * Метод для определения и сохранения назвавания первого ноутбука на первой странице поиска
+     * */
+    public void firstLaptopInAllPage() {
+        System.out.println("start first name");
+        firstLaptopsInPages = titleLaptops.get(0).getText();
+        System.out.println(firstLaptopsInPages);
+    }
+    /**
+     * Метод для ввода в поисковую строку названия первого найденого ноутбука на первой странице
+     * */
+    public void inputFirstNameLaptop() {
+        searchVoid = driver.findElement(By.xpath("//input[@id='header-search']"));
+        searchVoid.click();
+        searchVoid.sendKeys(firstLaptopsInPages);
+    }
+    /**
+     * Метод нажатия на кнопку поиска
+     * */
+    public void pressSearch() {
+        searchButton = driver.findElement(By.xpath("//button[@data-auto='search-button']"));
+        searchButton.click();
+    }
+    /**
+     * Метод проверки названий найденных ноутбуков на соотношение с названием первого найденого ноутбука на первой странице
+     * */
+    public Boolean validNameLaptopInSearchPage() {
+        addLaptopsInSearchPage();
+        for(WebElement element:titleSearch){
+            if(element.getText().equals(firstLaptopsInPages)) return true;
+        }
+        return false;
+    }
+    /**
+     * Метод сохранения названий ноутбуков при поиске по названию
+     * */
+    public void addLaptopsInSearchPage() {
+        titleSearch = driver.findElements(By.xpath("//div[@data-auto='SerpList']//h3[@data-auto='snippet-title']/.."));
     }
 }
