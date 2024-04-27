@@ -2,23 +2,29 @@ package ru.pogorelov.pages;
 
 import io.qameta.allure.Step;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
+/**
+ * @author  Погорелов Денис
+ * Класс отвечающий за пошаговые проверки нашей программы
+ * */
 public class YandexStepsAll {
-
+    /**
+      * Драйвер для работы с хромом
+     */
     private static WebDriver driver;
-    private static WebDriverWait wait;
+    /**
+     * Переменная для работы с классом YandexBefore
+     */
     private static YandexBefore before;
 
     @Step("Переход на сайт {url}")
     public static void openWebsite(String url, WebDriver chromedriver, String title){
         driver = chromedriver;
-        driver.get(url);
+        before = new YandexBefore(driver);
+        before.openWebsite(url, title);
     }
     @Step("Переход в раздел каталог")
     public static void openCatalog(){
-        before = new YandexBefore(driver);
         before.openCatalog();
     }
     @Step("Наводим курсор на раздел ноутбуки и компьютеры")
@@ -42,12 +48,12 @@ public class YandexStepsAll {
         before.selectManufacture();
     }
     @Step("Проверяем, что на первой странице отображается более 12 элементов товаров")
-    public static void checkingQuantityProduct() throws Exception {
+    public static void checkingQuantityProduct() {
        before.addLaptopsFirstPage();
        before.checkCountLaptopsFirstPage();
     }
     @Step("Проверка, что на всех страницах предложения соответсвуют фильтру")
-    public static void checkingFilterProduct() throws InterruptedException {
+    public static void checkingFilterProduct()  {
         before.addLaptopsAllPage();
         before.checkProductsAllPage("Lenovo", "HP", 30000, 10000);
     }

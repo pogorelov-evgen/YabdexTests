@@ -1,6 +1,6 @@
 package ru.pogorelov.pages;
 
-import org.junit.jupiter.api.Assertions;
+import ru.pogorelov.helpers.Assertions;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -103,7 +103,7 @@ public class YandexBefore {
      * */
     public void openWebsite(String url, String title){
         driver.get(url);
-        System.out.println(driver.getTitle().contains(title));
+        Assertions.assertTrue(driver.getTitle().contains(title),"Название: "+ driver.getTitle()+" не соответсвует заданному: "+title);
     }
     /**
      * Метод открытия каталога товаров
@@ -111,7 +111,6 @@ public class YandexBefore {
     public void openCatalog(){
         this.catalog = driver.findElement(By.xpath("//span[text()='Каталог']"));
         catalog.click();
-        System.out.println("Catalog");
     }
     /**
      * Метод для наведения курсора на раздел - электроника
@@ -121,7 +120,6 @@ public class YandexBefore {
         this.electronics = driver.findElement(By.xpath("//li/a/span[text()='Электроника']"));
         Actions actions = new Actions(driver);
         actions.moveToElement(electronics).perform();
-        System.out.println("indicateElectronics");
     }
     /**
      * Метод для открытия вкладки - ноутбуки
@@ -129,14 +127,12 @@ public class YandexBefore {
     public void openLaptop(){
         this.laptop = driver.findElement(By.xpath("//a[text()='Ноутбуки']"));
         laptop.click();
-        System.out.println("openLaptop");
     }
     /**
      * Метод для проверки перехода в раздел - ноутбуки
      * */
     public void validateLaptop() {
-        System.out.println(driver.getTitle().contains("Ноутбуки"));
-        Assertions.fail("Testing");
+        Assertions.assertTrue(driver.getTitle().contains("Ноутбуки"),"Раздел в который перешли: "+ driver.getTitle()+" не содержит поискового слова 'Ноутбуки'");
     }
     /**
      * Метод для установки диапазона цен на ноутбуки
@@ -150,7 +146,6 @@ public class YandexBefore {
         minPrice.sendKeys(String.valueOf(min));
         maxPrice.click();
         maxPrice.sendKeys(String.valueOf(max));
-        System.out.println("Цена установлена");
     }
     /**
      * Метод для выбора производителей ноутбуков
@@ -161,14 +156,13 @@ public class YandexBefore {
         manufacturerLenovo.click();
         manufacturerHP.click();
         wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@data-auto='SerpStatic-loader']//div[contains(@class, 'position_center')]//span[@role='progressbar']")));
-        System.out.println("manufacturer");
     }
     /**
      * Метод сохранения названий ноутбуков выданных при поиске
      * */
     public void saveTitleLaptops() {
         this.titleLaptops = driver.findElements(By.xpath("//div[@data-auto-themename='listDetailed']//div[@data-baobab-name='title']//h3"));
-        System.out.println("Title count "+titleLaptops.size());
+        Assertions.assertTrue(!titleLaptops.isEmpty(),"Список названий ноутбуков пуст");
 
     }
     /**
@@ -176,32 +170,30 @@ public class YandexBefore {
      * */
     public void savePriceLaptops() {
         this.priceLaptops = driver.findElements(By.xpath("//div[@data-auto-themename='listDetailed']//span[@data-auto='snippet-price-current']/span[1]"));
-        System.out.println("Price count "+ priceLaptops.size());
+        Assertions.assertTrue(!priceInteger.isEmpty(),"Список с ценами на ноутбуки пуст");
     }
     /**
      * Метод сохранения данных(цена и название) о ноутбуках выданных при поиске
      * */
-    public void addLaptopsFirstPage() throws InterruptedException {
+    public void addLaptopsFirstPage() {
         saveTitleLaptops();
         savePriceLaptops();
     }
     /**
      * Метод проверки количества выдаваемых ноутбуков на первой странице
      * */
-    public void checkCountLaptopsFirstPage() throws Exception {
-        System.out.println("Count price Laptops first page  - "+priceLaptops.size());
-        System.out.println("Count title Laptops first page  - "+titleLaptops.size());
-        if(titleLaptops.size()>12) System.out.println("Количество больше 12");
+    public void checkCountLaptopsFirstPage() {
+        Assertions.assertTrue(titleLaptops.size()>12, "Количество выдаваемых нотбуков на первой странице не больше 12");
 
     }
     /**
      * Метод сохранения всех выдаваемых ноутбуков на всех страницах
      * */
-    public void addLaptopsAllPage() throws InterruptedException {
+    public void addLaptopsAllPage() {
         Actions actions = new Actions(driver);
         WebElement buttonShowMore = driver.findElement(By.xpath("//button[@data-auto = 'pager-more']/span"));
         actions.scrollToElement(buttonShowMore).perform();
-        System.out.println("button ShowMore " + buttonShowMore.isDisplayed());
+
         if (buttonShowMore.isDisplayed()) {
             buttonShowMore.click();
         }
@@ -211,9 +203,8 @@ public class YandexBefore {
         int maxNumber;
         for(int i = 2; i < 50; i++) {
             countProducts = allPages.size();
-            System.out.println("Count "+allPages.size());
+
             wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//div[@data-current-page='"+i+"']//button[@data-auto='pager-more']"))));
-            System.out.println("scroll");
             actions.scrollToElement(buttonShowMore).perform();
             if (buttonShowMore.isDisplayed()) {
                 buttonShowMore.click();
@@ -224,7 +215,6 @@ public class YandexBefore {
                 HashSet<Integer> set = new HashSet<>();
                 numberPages.forEach(x->set.add(Integer.parseInt(x.getText())));
                 maxNumber = set.stream().max(Integer::compare).get();
-                System.out.println("max number =" + maxNumber + " i = "+i);
                 if ((maxNumber-1)==(i)){
                     System.out.println("Max number == i");
                     break;
@@ -235,7 +225,6 @@ public class YandexBefore {
         }
         saveTitleLaptops();
         savePriceLaptops();
-        System.out.println("Total: " + priceLaptops.size() +" "+ titleLaptops.size());
         
     }
     /**
@@ -246,11 +235,11 @@ public class YandexBefore {
      * @param maxPrice максимальная цена при выборе диапазона цен
      * */
     public void checkProductsAllPage(String nameProduct1, String nameProduct2, int maxPrice, int minPrice) {
-        System.out.println("Start checkProductsAllPage");
-        System.out.println(titleLaptops.stream().allMatch(x->(x.getText().contains(nameProduct1))||(x.getText().contains(nameProduct2))));
+        Assertions.assertTrue(titleLaptops.stream().allMatch(x->(x.getText().contains(nameProduct1))||(x.getText().contains(nameProduct2)))
+                ,"Название ноутбуков не соответсвуют условиям поиска, не содержит: "+nameProduct1+" или "+nameProduct2);
         convertPriceToInteger(priceLaptops);
-        System.out.println(priceInteger.stream().allMatch(x->(x>=10000 && x<=30000)));
-
+       Assertions.assertTrue(priceInteger.stream().allMatch(x->(x>=10000 && x<=30000))
+               ,"Цены ноутбуков не соответсвуют условиям поиска, не входят в диапозон: от "+minPrice+" до "+maxPrice);
     }
     /**
      * Метод для перевода цен ноутбуков в общем списке ноутбуков к значению выраженных в int
@@ -261,15 +250,12 @@ public class YandexBefore {
             priceInteger = new ArrayList<>();
             priceInteger.add(Character.getNumericValue(newPrice[0])*10000 + Character.getNumericValue(newPrice[1])*1000 + Character.getNumericValue(newPrice[3])*100 + Character.getNumericValue(newPrice[4])*10 + Character.getNumericValue(newPrice[5]));
         }
-        System.out.println("Converted price");
     }
     /**
      * Метод для определения и сохранения назвавания первого ноутбука на первой странице поиска
      * */
     public void firstLaptopInAllPage() {
-        System.out.println("start first name");
         firstLaptopsInPages = titleLaptops.get(0).getText();
-        System.out.println(firstLaptopsInPages);
     }
     /**
      * Метод для ввода в поисковую строку названия первого найденого ноутбука на первой странице
