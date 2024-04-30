@@ -1,18 +1,15 @@
 import io.qameta.allure.Feature;
-import io.qameta.allure.Step;
-import io.qameta.allure.aspects.StepsAspects;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import ru.pogorelov.helpers.TestsProperties;
-import ru.pogorelov.pages.YandexBefore;
+import ru.pogorelov.pages.YandexStepsAll;
 
 import static ru.pogorelov.helpers.Properties.properties;
-import static ru.pogorelov.pages.YandexStepsAll.*;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * @author  Погорелов Денис
@@ -29,7 +26,7 @@ public class YandexTests {
      * */
     @BeforeEach
     public void beforeEach(){
-        System.setProperty(properties.driver(), System.getenv("CHROME_DRIVER"));
+        System.setProperty(properties.driver(), properties.chromeDriver());
         driver = new ChromeDriver();
         driver.manage().window().maximize();
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(30));
@@ -38,25 +35,31 @@ public class YandexTests {
     }
     /**
      * Метод тестрирования Яндекс маркета
+     * @param title Данные для проверки названия веб страницы на которую перешли
+     * @param  minPrice Устанавливаем минимальную цену на товар
+     * @param maxPrice Устанавливаем максимальную цену на товар
+     * @param manufacturersList Задаем список производителей
+     * @param quantity задаем минимальное количества товара на странице которое мы проверяем
      * */
     @Feature("Проверка Яндекс Маркета")
     @DisplayName("Проверка результатов поиска ноутбуков")
     @ParameterizedTest(name="{displayName}: {arguments}")
-    @CsvSource({"10000,30000"})
-    public void testYandex(int minPrice, int maxPrice) {
-        openWebsite(properties.yandexMarket(),driver,"Яндекс Маркет");
-        openCatalog();
-        indicateElectronics();
-        openLaptop();
-        validateLaptop();
-        installPrice(minPrice,maxPrice);
-        selectManufacture();
-        checkingQuantityProduct();
-        checkingFilterProduct();
-        firstLaptop();
-        inputFirstLaptop();
-        pressSearch();
-        Assertions.assertTrue(validLaptop(),"В результате поиска не найдено данного нотбука");
+    @MethodSource("ru.pogorelov.helpers.DataProvider#provider")
+    public void testYandex(String title, int minPrice, int maxPrice, List<String> manufacturersList,int quantity) {
+        YandexStepsAll step = new YandexStepsAll(driver);
+        step.openWebsite(properties.yandexMarket(),title);
+        step.openCatalog();
+        step.indicateElectronics();
+        step.openLaptop();
+        step.validateLaptop();
+        step.installPrice(minPrice,maxPrice);
+        step.selectManufacture(manufacturersList);
+        step.checkingQuantityProduct(quantity);
+        step.checkingFilterProduct(minPrice,maxPrice,manufacturersList);
+        step.firstLaptop();
+        step.inputFirstLaptop();
+        step.pressSearch();
+        Assertions.assertTrue(step.validLaptop(),"В результате поиска не найдено данного нотбука");
     }
     /**
      * Методы вызываемый после каждого теста

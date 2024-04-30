@@ -48,14 +48,6 @@ public class YandexBefore {
      * */
     private WebElement maxPrice;
     /**
-     * Элемент области поиска Яндекс Маркета в разделе ноутбуков, где задается производитель - HP
-     * */
-    private WebElement manufacturerHP;
-    /**
-     * Элемент области поиска Яндекс Маркета в разделе ноутбуков, где задается производитель - Lenovo
-     * */
-    private WebElement manufacturerLenovo;
-    /**
      * Список названий ноутбуков
      * */
     private List<WebElement> titleLaptops;
@@ -100,6 +92,7 @@ public class YandexBefore {
     /**
      * Метод для перехода по переданной ссылке
      * @param  url ссылка на страницу для перехода
+     * @param title данные для проверки названия страницы на которую перешли
      * */
     public void openWebsite(String url, String title){
         driver.get(url);
@@ -149,13 +142,10 @@ public class YandexBefore {
     }
     /**
      * Метод для выбора производителей ноутбуков
+     * @param name название производителя которого мы выбираем
      * */
-    public void selectManufacture() {
-        this.manufacturerHP = driver.findElement(By.xpath("//span[text()='HP']/../span/span"));
-        this.manufacturerLenovo = driver.findElement(By.xpath("//span[text()='Lenovo']/../span/span"));
-        manufacturerLenovo.click();
-        manufacturerHP.click();
-        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@data-auto='SerpStatic-loader']//div[contains(@class, 'position_center')]//span[@role='progressbar']")));
+    public void selectManufacture(String name) {
+        driver.findElement(By.xpath("//span[text()='"+name+"']/../span/span")).click();
     }
     /**
      * Метод сохранения названий ноутбуков выданных при поиске
@@ -163,27 +153,28 @@ public class YandexBefore {
     public void saveTitleLaptops() {
         this.titleLaptops = driver.findElements(By.xpath("//div[@data-auto-themename='listDetailed']//div[@data-baobab-name='title']//h3"));
         Assertions.assertTrue(!titleLaptops.isEmpty(),"Список названий ноутбуков пуст");
-
     }
     /**
      * Метод сохранения цен ноутбуков выданных при поиске
      * */
     public void savePriceLaptops() {
         this.priceLaptops = driver.findElements(By.xpath("//div[@data-auto-themename='listDetailed']//span[@data-auto='snippet-price-current']/span[1]"));
-        Assertions.assertTrue(!priceInteger.isEmpty(),"Список с ценами на ноутбуки пуст");
+        Assertions.assertTrue(!priceLaptops.isEmpty(),"Список с ценами на ноутбуки пуст");
     }
     /**
      * Метод сохранения данных(цена и название) о ноутбуках выданных при поиске
      * */
     public void addLaptopsFirstPage() {
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@data-auto='SerpStatic-loader']//div[contains(@class, 'position_center')]//span[@role='progressbar']")));
         saveTitleLaptops();
         savePriceLaptops();
     }
     /**
      * Метод проверки количества выдаваемых ноутбуков на первой странице
+     * @param quantity задаем минимальное количество товаров на странице, которое мы проверяем
      * */
-    public void checkCountLaptopsFirstPage() {
-        Assertions.assertTrue(titleLaptops.size()>12, "Количество выдаваемых нотбуков на первой странице не больше 12");
+    public void checkCountLaptopsFirstPage(int quantity) {
+        Assertions.assertTrue(titleLaptops.size()>quantity, "Количество выдаваемых нотбуков на первой странице не больше "+quantity);
 
     }
     /**
@@ -216,7 +207,6 @@ public class YandexBefore {
                 numberPages.forEach(x->set.add(Integer.parseInt(x.getText())));
                 maxNumber = set.stream().max(Integer::compare).get();
                 if ((maxNumber-1)==(i)){
-                    System.out.println("Max number == i");
                     break;
                 }
             }
@@ -229,20 +219,21 @@ public class YandexBefore {
     }
     /**
      * Метод проверки соответсвия всех выданных ноутбуков условиям поиска
-     * @param nameProduct1 Название производителя
-     * @param nameProduct2 Название производителя
+     * @param manufacturersList Список с названиями производителей
      * @param  minPrice Минимальная цена при выборе диапазона цен
      * @param maxPrice максимальная цена при выборе диапазона цен
      * */
-    public void checkProductsAllPage(String nameProduct1, String nameProduct2, int maxPrice, int minPrice) {
-        Assertions.assertTrue(titleLaptops.stream().allMatch(x->(x.getText().contains(nameProduct1))||(x.getText().contains(nameProduct2)))
-                ,"Название ноутбуков не соответсвуют условиям поиска, не содержит: "+nameProduct1+" или "+nameProduct2);
+    public void checkProductsAllPage(int minPrice, int maxPrice, List<String> manufacturersList) {
+        Assertions.assertTrue(titleLaptops.stream().allMatch(x->manufacturersList.contains(x.getText()))
+                ,"Название ноутбуков не соответсвуют условиям поиска");
+
         convertPriceToInteger(priceLaptops);
-       Assertions.assertTrue(priceInteger.stream().allMatch(x->(x>=10000 && x<=30000))
+        Assertions.assertTrue(priceInteger.stream().allMatch(x->(x>=minPrice && x<=maxPrice))
                ,"Цены ноутбуков не соответсвуют условиям поиска, не входят в диапозон: от "+minPrice+" до "+maxPrice);
     }
     /**
      * Метод для перевода цен ноутбуков в общем списке ноутбуков к значению выраженных в int
+     * @param prices список цен ноутбуков выраженных в типе данных WebElement
      * */
     private void convertPriceToInteger(List<WebElement> prices) {
         for (WebElement price : prices) {
